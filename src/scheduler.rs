@@ -3,6 +3,8 @@ use std::sync::Arc;
 use crate::queue::torrent_update::{Index, TorrentUpdate};
 use crate::state::AppState;
 use chrono::{Duration, Utc};
+use tokio::time::Instant;
+use tracing::info;
 
 pub async fn handle(state: &Arc<AppState>) {
     let mut interval = tokio::time::interval(std::time::Duration::from_millis(1));
@@ -24,6 +26,7 @@ pub async fn handle(state: &Arc<AppState>) {
 
 /// Remove peers that have not announced for some time
 pub async fn reap(state: &Arc<AppState>) {
+    let start = Instant::now();
     let config = state.config.load();
     let ttl = Duration::seconds(config.active_peer_ttl.try_into().unwrap());
     let active_cutoff = Utc::now().checked_sub_signed(ttl).unwrap();
@@ -86,4 +89,7 @@ pub async fn reap(state: &Arc<AppState>) {
             );
         }
     }
+
+    let elapsed = start.elapsed().as_millis();
+    info!("Expired stale peers in {elapsed} ms.")
 }
