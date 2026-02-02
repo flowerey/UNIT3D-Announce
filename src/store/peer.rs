@@ -11,6 +11,7 @@ use crate::model::peer_id::PeerId;
 use crate::config::Config;
 
 #[derive(Clone, Serialize)]
+#[serde(transparent)]
 pub struct PeerStore {
     inner: IndexMap<Index, Peer>,
 }
