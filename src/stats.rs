@@ -65,23 +65,23 @@ impl Stats {
             let elapsed = now.as_secs_f64() - self.last_request_at.load(Ordering::Relaxed);
             self.requests_per_1s
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |rate| {
-                    rate * f64::exp(-1f64 * elapsed / 1f64) + 1f64
+                    rate * f64::exp(-elapsed / 1f64) + 1f64
                 });
             self.requests_per_10s
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |rate| {
-                    rate * f64::exp(-1f64 * elapsed / 10f64) + 1f64
+                    rate * f64::exp(-elapsed / 10f64) + 1f64
                 });
             self.requests_per_60s
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |rate| {
-                    rate * f64::exp(-1f64 * elapsed / 60f64) + 1f64
+                    rate * f64::exp(-elapsed / 60f64) + 1f64
                 });
             self.requests_per_900s
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |rate| {
-                    rate * f64::exp(-1f64 * elapsed / 900f64) + 1f64
+                    rate * f64::exp(-elapsed / 900f64) + 1f64
                 });
             self.requests_per_7200s
                 .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |rate| {
-                    rate * f64::exp(-1f64 * elapsed / 7200f64) + 1f64
+                    rate * f64::exp(-elapsed / 7200f64) + 1f64
                 });
             self.last_request_at
                 .store(now.as_secs_f64(), Ordering::Relaxed);
@@ -97,27 +97,27 @@ impl Stats {
             self.announce_responses_per_1s.fetch_update(
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-                |rate| rate * f64::exp(-1f64 * elapsed / 1f64) + 1f64,
+                |rate| rate * f64::exp(-elapsed / 1f64) + 1f64,
             );
             self.announce_responses_per_10s.fetch_update(
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-                |rate| rate * f64::exp(-1f64 * elapsed / 10f64) + 1f64,
+                |rate| rate * f64::exp(-elapsed / 10f64) + 1f64,
             );
             self.announce_responses_per_60s.fetch_update(
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-                |rate| rate * f64::exp(-1f64 * elapsed / 60f64) + 1f64,
+                |rate| rate * f64::exp(-elapsed / 60f64) + 1f64,
             );
             self.announce_responses_per_900s.fetch_update(
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-                |rate| rate * f64::exp(-1f64 * elapsed / 900f64) + 1f64,
+                |rate| rate * f64::exp(-elapsed / 900f64) + 1f64,
             );
             self.announce_responses_per_7200s.fetch_update(
                 Ordering::Relaxed,
                 Ordering::Relaxed,
-                |rate| rate * f64::exp(-1f64 * elapsed / 7200f64) + 1f64,
+                |rate| rate * f64::exp(-elapsed / 7200f64) + 1f64,
             );
             self.last_announce_response_at
                 .store(now.as_secs_f64(), Ordering::Relaxed);

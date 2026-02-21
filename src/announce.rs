@@ -7,7 +7,7 @@ use axum::{
     },
 };
 use chrono::Duration;
-use rand::{Rng, rng, seq::IteratorRandom};
+use rand::{RngExt, rng, seq::IteratorRandom};
 use sqlx::types::chrono::Utc;
 use std::{
     fmt::Display,
@@ -223,14 +223,14 @@ impl FromRequestParts<Arc<AppState>> for ClientIp {
                 .headers
                 .get_all(header)
                 .iter()
-                .last()
+                .next_back()
                 // Err: Missing the client ip header
                 .ok_or(InternalTrackerError)?
                 .to_str()
                 // Err: Client ip header is not UTF-8
                 .map_err(|_| InternalTrackerError)?
                 .split(',')
-                .last()
+                .next_back()
                 // Err: Client ip header is empty
                 .ok_or(InternalTrackerError)?
                 .trim()
@@ -347,19 +347,19 @@ pub async fn announce(
 
     let now = Utc::now();
 
-    if let Ok(user) = &user {
-        if let Err(InfoHashNotFound) = torrent_id_res {
-            state.queues.unregistered_info_hashes.lock().upsert(
-                unregistered_info_hash_update::Index {
-                    user_id: user.id,
-                    info_hash: queries.info_hash,
-                },
-                UnregisteredInfoHashUpdate {
-                    created_at: now,
-                    updated_at: now,
-                },
-            );
-        }
+    if let Ok(user) = &user
+        && let Err(InfoHashNotFound) = torrent_id_res
+    {
+        state.queues.unregistered_info_hashes.lock().upsert(
+            unregistered_info_hash_update::Index {
+                user_id: user.id,
+                info_hash: queries.info_hash,
+            },
+            UnregisteredInfoHashUpdate {
+                created_at: now,
+                updated_at: now,
+            },
+        );
     }
 
     let torrent_id = torrent_id_res?;
@@ -649,7 +649,7 @@ pub async fn announce(
                         valid_peers
                             .clone()
                             .filter(|(_index, peer)| peer.is_seeder)
-                            .choose_multiple(&mut rng(), queries.numwant),
+                            .sample(&mut rng(), queries.numwant),
                     );
                 } else {
                     is_over_seed_list_rate_limit = true;
@@ -664,10 +664,7 @@ pub async fn announce(
                     peers.extend(
                         valid_peers
                             .filter(|(_index, peer)| !peer.is_seeder)
-                            .choose_multiple(
-                                &mut rng(),
-                                queries.numwant.saturating_sub(peers.len()),
-                            ),
+                            .sample(&mut rng(), queries.numwant.saturating_sub(peers.len())),
                     );
                 } else {
                     is_over_leech_list_rate_limit = true;
@@ -989,10 +986,10 @@ async fn check_connectivity(state: &Arc<AppState>, ip: IpAddr, port: u16) -> boo
         if let Some(connectable_port) = connectable_port_opt {
             let ttl = Duration::seconds(state.config.load().connectivity_check_interval);
 
-            if let Some(cached_until) = connectable_port.updated_at.checked_add_signed(ttl) {
-                if cached_until > now {
-                    return connectable_port.connectable;
-                }
+            if let Some(cached_until) = connectable_port.updated_at.checked_add_signed(ttl)
+                && cached_until > now
+            {
+                return connectable_port.connectable;
             }
         }
 

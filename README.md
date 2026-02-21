@@ -131,6 +131,7 @@ stdout_logfile=/var/www/html/storage/logs/announce.log
 **Set Up Runtime Directory (if using Unix sockets):**
 
 If using Unix sockets, create a `/run` directory for `ubuntu` user:
+
 1. `sudo nano /etc/tmpfiles.d/unit3d-announce.conf`
 2. Add: `d /run/unit3d-announce 0755 ubuntu www-data -`
 3. Run: `sudo systemd-tmpfiles --create`
@@ -140,7 +141,7 @@ If using Unix sockets, create a `/run` directory for `ubuntu` user:
 Reload supervisor
 
 ```sh
-$ sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl reload
+sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl reload
 ```
 
 ### Exiting UNIT3D-Announce
