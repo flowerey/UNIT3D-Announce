@@ -143,7 +143,7 @@ impl AnnounceError {
             // after regaining network connectivity, we can't return an
             // error otherwise the client might enter into an infinite loop
             // of sending `stopped` events. To prevent this, we need to
-            // send a warning (i.e. succcessful announce) instead, so that
+            // send a warning (i.e. successful announce) instead, so that
             // the client can successfully restart its session.
             Self::StoppedPeerDoesNotExist
             // These moderation warnings can't be errors or else
